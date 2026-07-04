@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "Jarina Khatoon",
+    "slug": "jarina-khatoon",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "https://via.placeholder.com/1024.png?text=JK",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "https://via.placeholder.com/1024.png?text=JK",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "https://via.placeholder.com/1024.png?text=JK",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "favicon": "https://via.placeholder.com/512.png?text=JK"
+    }
+  }
+}
