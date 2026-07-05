@@ -18,4 +18,4 @@ workflows:
         script: |
           flutter build apk --release
     artifacts:
-      - mobile_app/build/**/outputs/**/*.apk
+      - build/**/outputs/**/*.apk
