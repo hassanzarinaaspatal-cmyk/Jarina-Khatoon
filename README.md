@@ -1,27 +1,56 @@
-# Jarina Khatoon
+# हसन बाबू का अस्पताल — Clinic Management System
 
-This repository contains a minimal Expo (React Native) starter app so you can run the project on your mobile device using the Expo Go app.
+3 parts hain: **database**, **backend** (Node.js/Express), aur **mobile_app** (Flutter).
 
-## App name and icon
-- App name: Jarina Khatoon
-- Icon: placeholder image (you can replace the icon by adding a local file to `assets/icon.png` and updating `app.json`)
-
-## Run on your mobile (recommended: Expo Go)
-1. Install Node.js (v16+ recommended) and npm.
-2. On your computer, run:
-
+## 1. Database Setup (MySQL)
 ```bash
+mysql -u root -p < database/schema.sql
+```
+Ye `hasan_babu_clinic` naam ka database aur saari tables bana dega (users, patients, opd_visits, medicines).
+
+## 2. Backend Setup
+```bash
+cd backend
 npm install
-npx expo start
+cp .env.example .env
+# .env file kholkar apna MySQL password aur JWT_SECRET bharein
+npm start
+```
+Server `http://localhost:5000` pe chalega. Deploy karne ke liye (Railway, Render, ya apna VPS) same steps follow karein, bas `.env` me production DB credentials daalein.
+
+Pehla admin user banane ke liye Postman/curl se:
+```bash
+curl -X POST http://localhost:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"full_name":"Admin","username":"admin","password":"admin123","role":"admin"}'
+```
+Isi tarah doctor, reception, pharmacy role ke users bhi bana sakte hain — role field me sirf ye 4 values chalengi: `doctor`, `reception`, `pharmacy`, `admin`.
+
+## 3. Mobile App Setup (Flutter)
+```bash
+cd mobile_app
+flutter pub get
+```
+`lib/config/api_config.dart` file me apna deployed backend URL daalein:
+```dart
+static const String baseUrl = "https://your-actual-server.com/api";
+```
+Phir:
+```bash
+flutter run
 ```
 
-3. Install Expo Go on your phone (iOS App Store or Google Play).
-4. When `expo start` opens the Metro page in your browser, scan the QR code with Expo Go.
+## Login
+Ek hi login screen hai — Doctor, Reception, Pharmacy, Admin sabhi apne username/password se login karte hain. App role ke hisaab se aage dashboard dikhayega (abhi Reception Dashboard ready hai; Doctor/Pharmacy dashboards isi pattern pe add ho sakte hain).
 
-## Replace the icon (optional)
-To use a custom icon:
-1. Add your icon image at `assets/icon.png` (recommended 1024x1024 PNG).
-2. Update `app.json` to point `expo.icon` and `expo.android.adaptiveIcon.foregroundImage` to `./assets/icon.png`.
+## Ab tak kya bana hai
+- Login (JWT-based, sabhi roles)
+- Patient registration (auto HBA-XXXX ID)
+- Reception dashboard + aaj ki OPD queue
 
-## Next steps
-If you want, I can add a real icon file (you can upload one or I can generate a simple one) and tune app.json for production builds (EAS).
+## Aage kya add ho sakta hai
+- Doctor dashboard (diagnosis/prescription likhna)
+- Pharmacy dashboard (medicine stock, sale)
+- Admin dashboard (user management, reports)
+- Photo upload (prescription/patient photo)
+- Offline sync agar internet na ho
