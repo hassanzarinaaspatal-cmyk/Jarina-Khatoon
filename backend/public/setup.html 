@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Setup</title>
+<style>
+* { box-sizing: border-box; }
+body { font-family: -apple-system, Roboto, Arial, sans-serif; background: #0f1115; color: #e8e8e8; margin: 0; padding: 16px; }
+.card { background: #1a1d24; border-radius: 14px; padding: 18px; margin-bottom: 16px; border: 1px solid #2a2e38; }
+h1 { font-size: 20px; color: #14b8a6; margin: 0 0 4px 0; }
+.sub { color: #9aa0ab; font-size: 13px; margin-bottom: 16px; }
+label { display: block; font-size: 13px; color: #9aa0ab; margin: 10px 0 4px; }
+input, select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333844; background: #12141a; color: #fff; font-size: 15px; }
+button { width: 100%; padding: 14px; margin-top: 16px; border: none; border-radius: 10px; background: #14b8a6; color: #fff; font-size: 16px; font-weight: 600; }
+button.secondary { background: #2a2e38; }
+.result { margin-top: 14px; padding: 12px; border-radius: 8px; font-size: 13px; white-space: pre-wrap; word-break: break-word; display: none; }
+.result.show { display: block; }
+.result.ok { background: #0d2e26; border: 1px solid #14b8a6; color: #6ee7d5; }
+.result.err { background: #2e0d0d; border: 1px solid #e05555; color: #f5a3a3; }
+.result.info { background: #1a2333; border: 1px solid #3b5a8a; color: #a3c2f5; }
+</style>
+</head>
+<body>
+<div class="card">
+<h1>🏥 Admin Setup</h1>
+<div class="sub">Same-server tool — ye kaam karega</div>
+</div>
+<div class="card">
+<h2 style="font-size:15px;margin:0 0 6px;">Admin User Banayein</h2>
+<label>Full Name</label>
+<input type="text" id="fullName" value="Admin" />
+<label>Username</label>
+<input type="text" id="username" value="admin" />
+<label>Password</label>
+<input type="text" id="password" value="Hasan@2026Aspatal" />
+<label>Role</label>
+<select id="role">
+<option value="admin">Admin</option>
+<option value="doctor">Doctor</option>
+<option value="reception">Reception</option>
+<option value="pharmacy">Pharmacy</option>
+</select>
+<button onclick="createAdmin()">Admin User Create Karein</button>
+<div id="createResult" class="result"></div>
+</div>
+<div class="card">
+<h2 style="font-size:15px;margin:0 0 6px;">Login Test Karein</h2>
+<button class="secondary" onclick="testLogin()">Login Test Karein</button>
+<div id="loginResult" class="result"></div>
+</div>
+<script>
+function showResult(id, type, text) {
+const el = document.getElementById(id);
+el.className = 'result show ' + type;
+el.textContent = text;
+}
+async function createAdmin() {
+showResult('createResult', 'info', 'Create ho raha hai...');
+const body = {
+full_name: document.getElementById('fullName').value,
+username: document.getElementById('username').value,
+password: document.getElementById('password').value,
+role: document.getElementById('role').value
+};
+try {
+const res = await fetch('/api/auth/register', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify(body)
+});
+const text = await res.text();
+showResult('createResult', res.ok ? 'ok' : 'err', 'Status: ' + res.status + '\n' + text);
+} catch (e) {
+showResult('createResult', 'err', 'Fail: ' + e.message);
+}
+}
+async function testLogin() {
+showResult('loginResult', 'info', 'Test ho raha hai...');
+const body = {
+username: document.getElementById('username').value,
+password: document.getElementById('password').value
+};
+try {
+const res = await fetch('/api/auth/login', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify(body)
+});
+const text = await res.text();
+showResult('loginResult', res.ok ? 'ok' : 'err', 'Status: ' + res.status + '\n' + text);
+} catch (e) {
+showResult('loginResult', 'err', 'Fail: ' + e.message);
+}
+}
+</script>
+</body>
+</html>
