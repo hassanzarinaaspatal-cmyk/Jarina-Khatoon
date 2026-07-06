@@ -1,14 +1,5 @@
-
-const express = require('express'); // ये लाइन शायद पहले से हो
-const mysql = require('mysql2');    // आप अपनी ये नई लाइन यहाँ डालें
-
-// बाकी पुराना कोड यहाँ होगा...
-
-const connection = mysql.createConnection({
-  //... आपका कनेक्शन का कोड
-});
-
 const express = require('express');
+const mysql = require('mysql2');
 const cors = require('cors');
 require('dotenv').config();
 
@@ -17,25 +8,39 @@ const patientRoutes = require('./routes/patientRoutes');
 
 const app = express();
 
+// डेटाबेस कनेक्शन
+const connection = mysql.createConnection({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT
+});
+
+// कनेक्शन चेक करना
+connection.connect((err) => {
+  if (err) {
+    console.error('डेटाबेस जुड़ने में दिक्कत आई: ' + err.stack);
+    return;
+  }
+  console.log('मुबारक हो! डेटाबेस से जुड़ गए हैं।');
+});
+
+// मिडिलवेयर
 app.use(cors());
 app.use(express.json());
 
-// Health check
+// हेल्थ चेक
 app.get('/', (req, res) => {
   res.json({ success: true, message: 'Hasan Babu Ka Aspataal API chal raha hai.' });
 });
 
-// Routes
+// रूट्स
 app.use('/api/auth', authRoutes);
 app.use('/api/patients', patientRoutes);
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ success: false, message: 'Route nahi mila.' });
-});
-
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server chal raha hai on port ${PORT}`);
+// सर्वर चालू करना
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
