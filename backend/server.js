@@ -1,3 +1,13 @@
+
+const express = require('express'); // ये लाइन शायद पहले से हो
+const mysql = require('mysql2');    // आप अपनी ये नई लाइन यहाँ डालें
+
+// बाकी पुराना कोड यहाँ होगा...
+
+const connection = mysql.createConnection({
+  //... आपका कनेक्शन का कोड
+});
+
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
