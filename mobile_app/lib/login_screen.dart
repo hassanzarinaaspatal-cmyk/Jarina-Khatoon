@@ -1,6 +1,4 @@
-
 import 'patient_registration.dart';
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -128,6 +126,16 @@ class _LoginScreenState extends State<LoginScreen> {
                               ? const CircularProgressIndicator(color: Colors.white)
                               : const Text("Login", style: TextStyle(fontSize: 16, color: Colors.white)),
                         ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const PatientRegistrationScreen()),
+                          );
+                        },
+                        child: const Text("नया खाता बनाएँ (Sign Up)"),
                       ),
                     ],
                   ),
