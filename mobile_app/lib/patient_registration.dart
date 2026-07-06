@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'config/api_config.dart';
+import 'services/network_service.dart';
 
 class PatientRegistrationScreen extends StatefulWidget {
   const PatientRegistrationScreen({super.key});
@@ -27,11 +27,13 @@ class _PatientRegistrationScreenState extends State<PatientRegistrationScreen> {
     setState(() => _isSaving = true);
 
     try {
+      print('📝 Registering patient: ${_nameController.text}');
+      
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token') ?? '';
 
-      final response = await http.post(
-        Uri.parse(ApiConfig.patients),
+      final response = await NetworkService.post(
+        ApiConfig.patients,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -46,28 +48,49 @@ class _PatientRegistrationScreenState extends State<PatientRegistrationScreen> {
         }),
       );
 
-      final data = jsonDecode(response.body);
-
       if (!mounted) return;
 
+      final data = jsonDecode(response.body);
+
       if (response.statusCode == 201 && data['success'] == true) {
+        print('✅ Patient registered successfully! ID: ${data['hba_id']}');
+        
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Patient register ho gaya! ID: ${data['hba_id']}")),
+          SnackBar(
+            content: Text("✅ Patient register ho gaya! ID: ${data['hba_id']}"),
+            backgroundColor: Colors.green.shade700,
+            duration: const Duration(seconds: 3),
+          ),
         );
+        
         _formKey.currentState!.reset();
         _nameController.clear();
         _ageController.clear();
         _phoneController.clear();
         _addressController.clear();
         _guardianController.clear();
+        setState(() => _gender = 'Male');
       } else {
+        print('❌ Registration failed: ${data['message']}');
+        
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data['message'] ?? "Registration fail ho gaya.")),
+          SnackBar(
+            content: Text(data['message'] ?? "Registration fail ho gaya."),
+            backgroundColor: Colors.red.shade700,
+            duration: const Duration(seconds: 3),
+          ),
         );
       }
     } catch (e) {
+      print('❌ Registration error: $e');
+      
+      final errorMsg = NetworkService.getErrorMessage(e);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Server se connect nahi ho paaya.")),
+        SnackBar(
+          content: Text(errorMsg),
+          backgroundColor: Colors.red.shade700,
+          duration: const Duration(seconds: 4),
+        ),
       );
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -90,7 +113,12 @@ class _PatientRegistrationScreenState extends State<PatientRegistrationScreen> {
             children: [
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: "पूरा नाम *", border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  labelText: "पूरा नाम *",
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.person),
+                ),
+                enabled: !_isSaving,
                 validator: (v) => (v == null || v.trim().isEmpty) ? "नाम ज़रूरी है" : null,
               ),
               const SizedBox(height: 12),
@@ -100,20 +128,29 @@ class _PatientRegistrationScreenState extends State<PatientRegistrationScreen> {
                     child: TextFormField(
                       controller: _ageController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: "उम्र", border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                        labelText: "उम्र",
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.calendar_today),
+                      ),
+                      enabled: !_isSaving,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      initialValue: _gender,
-                      decoration: const InputDecoration(labelText: "लिंग", border: OutlineInputBorder()),
+                      value: _gender,
+                      decoration: const InputDecoration(
+                        labelText: "लिंग",
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.wc),
+                      ),
                       items: const [
                         DropdownMenuItem(value: 'Male', child: Text('पुरुष')),
                         DropdownMenuItem(value: 'Female', child: Text('महिला')),
                         DropdownMenuItem(value: 'Other', child: Text('अन्य')),
                       ],
-                      onChanged: (v) => setState(() => _gender = v ?? 'Male'),
+                      onChanged: _isSaving ? null : (v) => setState(() => _gender = v ?? 'Male'),
                     ),
                   ),
                 ],
@@ -122,18 +159,33 @@ class _PatientRegistrationScreenState extends State<PatientRegistrationScreen> {
               TextFormField(
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(labelText: "मोबाइल नंबर", border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  labelText: "मोबाइल नंबर",
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.phone),
+                ),
+                enabled: !_isSaving,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _guardianController,
-                decoration: const InputDecoration(labelText: "पिता/पति का नाम", border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  labelText: "पिता/पति का नाम",
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.family_restroom),
+                ),
+                enabled: !_isSaving,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _addressController,
                 maxLines: 2,
-                decoration: const InputDecoration(labelText: "पता", border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  labelText: "पता",
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.location_on),
+                ),
+                enabled: !_isSaving,
               ),
               const SizedBox(height: 24),
               SizedBox(
@@ -141,10 +193,47 @@ class _PatientRegistrationScreenState extends State<PatientRegistrationScreen> {
                 height: 48,
                 child: ElevatedButton(
                   onPressed: _isSaving ? null : _submit,
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                    disabledBackgroundColor: Colors.grey.shade400,
+                  ),
                   child: _isSaving
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text("रजिस्टर करें", style: TextStyle(color: Colors.white, fontSize: 16)),
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          "रजिस्टर करें",
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade50,
+                  border: Border.all(color: Colors.amber.shade300),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.amber.shade700, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'मरीज़ को एक unique ID दिया जाएगा',
+                        style: TextStyle(
+                          color: Colors.amber.shade700,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -152,5 +241,15 @@ class _PatientRegistrationScreenState extends State<PatientRegistrationScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _ageController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _guardianController.dispose();
+    super.dispose();
   }
 }
