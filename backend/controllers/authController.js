@@ -67,6 +67,12 @@ async function login(req, res) {
       return res.status(401).json({ success: false, message: 'Password galat hai.' });
     }
 
+    // Ensure JWT secret exists before signing token
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET missing when creating token');
+      return res.status(500).json({ success: false, message: 'Server misconfiguration: JWT_SECRET missing' });
+    }
+
     const token = jwt.sign(
       { id: user.id, username: user.username, role: user.role, full_name: user.full_name },
       process.env.JWT_SECRET,

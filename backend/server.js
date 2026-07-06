@@ -1,30 +1,17 @@
 const express = require('express');
-const mysql = require('mysql2');
 const cors = require('cors');
 require('dotenv').config();
+
+// Fail-fast if JWT secret missing (helps avoid runtime 500s during login)
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET is not set. Please add JWT_SECRET to backend/.env');
+  // process.exit(1); // uncomment to stop startup when misconfigured
+}
 
 const authRoutes = require('./routes/authRoutes');
 const patientRoutes = require('./routes/patientRoutes');
 
 const app = express();
-
-// डेटाबेस कनेक्शन
-const connection = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT
-});
-
-// कनेक्शन चेक करना
-connection.connect((err) => {
-  if (err) {
-    console.error('डेटाबेस जुड़ने में दिक्कत आई: ' + err.stack);
-    return;
-  }
-  console.log('मुबारक हो! डेटाबेस से जुड़ गए हैं।');
-});
 
 // मिडिलवेयर
 app.use(cors());
