@@ -13,7 +13,17 @@ workflows:
           flutter create --platforms=android --org com.hasanbabu .
       - name: Add Internet permission
         script: |
-          sed -i "/<manifest /a\\    <uses-permission android:name='android.permission.INTERNET'/>" android/app/src/main/AndroidManifest.xml
+          python3 - <<'PYEOF'
+          path = "android/app/src/main/AndroidManifest.xml"
+          with open(path, "r") as f:
+              content = f.read()
+          perm = '    <uses-permission android:name="android.permission.INTERNET"/>\n'
+          if "android.permission.INTERNET" not in content:
+              idx = content.find(">") + 1
+              content = content[:idx] + "\n" + perm + content[idx:]
+          with open(path, "w") as f:
+              f.write(content)
+          PYEOF
       - name: Get Flutter packages
         script: |
           flutter packages pub get
