@@ -5,6 +5,7 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
 const patientRoutes = require('./routes/patientRoutes');
+const opdRoutes = require('./routes/opdRoutes');
 
 const app = express();
 
@@ -126,6 +127,7 @@ app.get('/create-first-admin', async (req, res) => {
 // ========================================
 app.use('/api/auth', authRoutes);
 app.use('/api/patients', patientRoutes);
+app.use('/api/opd', opdRoutes);
 
 // ========================================
 // Error Handling Middleware
