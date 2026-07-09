@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'config/api_config.dart';
 import 'patient_registration.dart';
 import 'login_screen.dart';
+import 'screens/checkin_screen.dart';
 
 class ReceptionDashboard extends StatefulWidget {
   const ReceptionDashboard({super.key});
@@ -90,7 +91,7 @@ class _ReceptionDashboardState extends State<ReceptionDashboard> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -110,8 +111,28 @@ class _ReceptionDashboardState extends State<ReceptionDashboard> {
                 ),
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const CheckinScreen()),
+                    ).then((_) => _fetchQueue());
+                  },
+                  icon: const Icon(Icons.playlist_add_check),
+                  label: const Text("मरीज़ को OPD लाइन में जोड़ें"),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.teal,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+              ),
+            ),
             const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text("आज की OPD लाइन", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
