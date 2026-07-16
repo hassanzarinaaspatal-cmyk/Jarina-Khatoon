@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart'; // 💡 यह ज़रूरी है
 import 'config/api_config.dart';
 import 'patient_registration.dart';
 import 'login_screen.dart';
-import 'screens/checkin_screen.dart';
-import 'screens/doctor_dashboard.dart';
+import 'checkin_screen.dart';
+import 'doctor_dashboard.dart';
+import 'services/network_service.dart';
 
 class ReceptionDashboard extends StatefulWidget {
   const ReceptionDashboard({super.key});
@@ -28,6 +29,22 @@ class _ReceptionDashboardState extends State<ReceptionDashboard> {
     _fetchQueue();
   }
 
+  // 💡 कॉल करने का फंक्शन
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    }
+  }
+
+  // 💡 व्हाट्सएप करने का फंक्शन
+  Future<void> _openWhatsApp(String phoneNumber) async {
+    final Uri url = Uri.parse("https://wa.me/$phoneNumber");
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    }
+  }
+
   Future<void> _loadUser() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -37,24 +54,35 @@ class _ReceptionDashboardState extends State<ReceptionDashboard> {
   }
 
   Future<void> _fetchQueue() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
+    
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token') ?? '';
 
-      final response = await http.get(
-        Uri.parse(ApiConfig.todayQueue),
+      final response = await NetworkService.get(
+        ApiConfig.todayQueue,
         headers: {'Authorization': 'Bearer $token'},
       );
 
+      if (!mounted) return;
+
       final data = jsonDecode(response.body);
-      if (response.statusCode == 200 && data['success'] == true) {
-        setState(() => _queue = data['queue']);
+      if (response.statusCode == 200 && data != null && data['success'] == true) {
+        setState(() {
+          _queue = data['queue'] ?? [];
+        });
       }
     } catch (e) {
-      // Silently ignore for now; could show error banner
+      print("❌ Queue fetch error: $e");
+      if (mounted) {
+        setState(() => _queue = []);
+      }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -62,17 +90,19 @@ class _ReceptionDashboardState extends State<ReceptionDashboard> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
     if (!mounted) return;
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+    Navigator.pushReplacement(
+      context, 
+      MaterialPageRoute(builder: (_) => const LoginScreen())
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool showDoctorAccess = _role == 'admin' || _role == 'doctor';
+    final bool showDoctorAccess = _role.toLowerCase() == 'admin' || _role.toLowerCase() == 'doctor';
 
     return Scaffold(
       appBar: AppBar(
         title: const Text("रिसेप्शन डैशबोर्ड"),
-        backgroundColor: Colors.teal,
         actions: [
           IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
         ],
@@ -89,7 +119,7 @@ class _ReceptionDashboardState extends State<ReceptionDashboard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text("नमस्ते, $_fullName", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  Text("Role: $_role", style: const TextStyle(fontSize: 13, color: Colors.grey)),
+                  Text("पद (Role): $_role", style: const TextStyle(fontSize: 13, color: Colors.grey)),
                 ],
               ),
             ),
@@ -172,16 +202,43 @@ class _ReceptionDashboardState extends State<ReceptionDashboard> {
                           itemCount: _queue.length,
                           itemBuilder: (context, index) {
                             final item = _queue[index];
+                            Color statusColor = Colors.orange;
+                            if (item['status'] == 'Completed') statusColor = Colors.green;
+                            if (item['status'] == 'Cancelled') statusColor = Colors.red;
+
                             return Card(
                               margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               child: ListTile(
                                 leading: CircleAvatar(
-                                  backgroundColor: Colors.teal,
-                                  child: Text('${item['token_number']}', style: const TextStyle(color: Colors.white)),
+                                  backgroundColor: Colors.teal.shade700,
+                                  child: Text('${item['token_number'] ?? index + 1}', style: const TextStyle(color: Colors.white)),
                                 ),
-                                title: Text(item['full_name'] ?? ''),
-                                subtitle: Text("${item['hba_id']} | ${item['age'] ?? '-'} yrs | ${item['gender'] ?? '-'}"),
-                                trailing: Text(item['status'] ?? ''),
+                                title: Text(item['full_name'] ?? 'अज्ञात मरीज़'),
+                                subtitle: Text("${item['hba_id'] ?? 'नो ID'} | ${item['age'] ?? '-'} साल | ${item['gender'] ?? '-'}"),
+                                trailing: Row( // 💡 यहाँ बटन जोड़े हैं
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.call, color: Colors.green, size: 20),
+                                      onPressed: () => _makePhoneCall(item['phone'] ?? ''),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.message, color: Colors.blue, size: 20),
+                                      onPressed: () => _openWhatsApp(item['phone'] ?? ''),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: statusColor.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        item['status'] ?? 'Waiting',
+                                        style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 10),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             );
                           },

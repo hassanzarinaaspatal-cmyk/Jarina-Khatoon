@@ -13,9 +13,20 @@ class HasanBabuClinicApp extends StatelessWidget {
     return MaterialApp(
       title: 'हसन बाबू का अस्पताल',
       debugShowCheckedModeBanner: false,
+      // 💡 मॉडर्न थीमिंग: ऐप को Material 3 के लुक में अपग्रेड किया
       theme: ThemeData(
-        primarySwatch: Colors.teal,
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.teal,
+          primary: Colors.teal, // मुख्य बटन्स और बार्स के लिए
+        ),
         fontFamily: 'NotoSansDevanagari',
+        // 💡 ऐप बार का बैकग्राउंड कलर हर स्क्रीन पर सेट करने के लिए
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.teal,
+          foregroundColor: Colors.white,
+          centerTitle: false,
+        ),
       ),
       home: const LoginScreen(),
     );

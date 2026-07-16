@@ -62,6 +62,50 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
     }
   }
 
+  // 💡 डेटाबेस के ENUM के हिसाब से स्टेटस का रंग और नाम तय करने वाला हेल्पर
+  Widget _buildStatusChip(String status) {
+    Color bgColor;
+    Color textColor;
+    String label;
+
+    switch (status.toLowerCase()) {
+      case 'waiting':
+        bgColor = Colors.orange.shade100;
+        textColor = Colors.orange.shade800;
+        label = "Waiting";
+        break;
+      case 'with_doctor':
+        bgColor = Colors.blue.shade100;
+        textColor = Colors.blue.shade800;
+        label = "With Doctor";
+        break;
+      case 'completed':
+        bgColor = Colors.green.shade100;
+        textColor = Colors.green.shade800;
+        label = "Completed";
+        break;
+      case 'cancelled':
+        bgColor = Colors.red.shade100;
+        textColor = Colors.red.shade800;
+        label = "Cancelled";
+        break;
+      default:
+        bgColor = Colors.grey.shade200;
+        textColor = Colors.grey.shade800;
+        label = status.toUpperCase();
+    }
+
+    return Chip(
+      label: Text(
+        label, 
+        style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 12)
+      ),
+      backgroundColor: bgColor,
+      padding: EdgeInsets.zero,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -134,7 +178,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
       itemCount: _queue.length,
       itemBuilder: (context, index) {
         final item = _queue[index];
-        final isWaiting = item['status'] == 'waiting';
+        final currentStatus = item['status'] ?? 'waiting';
 
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 6),
@@ -149,20 +193,19 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
             title: Text(item['full_name'] ?? ''),
             subtitle: Text(
               "${item['hba_id'] ?? ''} • ${item['age'] ?? '-'} yrs, ${item['gender'] ?? '-'}\n"
-              "${item['complaint'] ?? 'Shikayat darj nahi'}",
+              "Shikayat: ${item['complaint'] ?? 'Darj nahi'}",
             ),
             isThreeLine: true,
-            trailing: Chip(
-              label: Text(isWaiting ? "Waiting" : item['status'] ?? ''),
-              backgroundColor: isWaiting ? Colors.orange.shade100 : Colors.green.shade100,
-            ),
+            trailing: _buildStatusChip(currentStatus), // 💡 नया रंगीन चिप हेल्पर यहाँ लागू किया
             onTap: () async {
+              // पर्चा स्क्रीन पर डेटा भेजना
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => PrescriptionScreen(visit: item),
                 ),
               );
+              // अगर पर्चा सेव करके वापस आएँगे, तो लाइन अपने आप रीफ्रेश हो जाएगी
               if (result == true) {
                 _loadQueue();
               }

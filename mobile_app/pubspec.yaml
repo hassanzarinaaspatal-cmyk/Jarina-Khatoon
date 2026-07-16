@@ -1,6 +1,7 @@
-name: hasan_babu_clinic
-description: Hasan Babu Ka Aspataal - Clinic Management Mobile App
+name: mobile_app
+description: Jarina Khatoon Flutter Application.
 publish_to: 'none'
+
 version: 1.0.0+1
 
 environment:
@@ -9,21 +10,25 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
-  http: ^1.2.1
-  shared_preferences: ^2.2.3
-  cupertino_icons: ^1.0.6
-
-  image_picker: ^1.1.2
-  file_picker: ^8.0.7
-  permission_handler: ^11.3.1
+  
+  # Network & API
+  http: 1.2.1
+  
+  # Local Storage
+  shared_preferences: 2.5.5
+  
+  # UI
+  cupertino_icons: 1.0.8
+  
+  # Media
+  image_picker: 1.1.2
+  file_picker: 6.2.1
+  permission_handler: 12.0.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: 4.0.0
 
 flutter:
   uses-material-design: true
-
-  assets:
-    - pexels-emreayata-34360150.jpg

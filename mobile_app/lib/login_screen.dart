@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'config/api_config.dart';
 import 'reception_dashboard.dart';
+import 'doctor_dashboard.dart'; // 💡 डॉक्टर डैशबोर्ड को यहाँ इम्पोर्ट किया
 import 'services/network_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -51,14 +52,26 @@ class _LoginScreenState extends State<LoginScreen> {
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', data['token']);
-        await prefs.setString('role', data['user']['role']);
-        await prefs.setString('full_name', data['user']['full_name']);
+        
+        // बैकएंड से रोल और नाम सुरक्षित करना
+        final userRole = data['user']['role'] ?? 'receptionist';
+        await prefs.setString('role', userRole);
+        await prefs.setString('full_name', data['user']['full_name'] ?? '');
 
         if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const ReceptionDashboard()),
-        );
+
+        // 💡 रोल-बेस्ड राउटिंग: रोल के हिसाब से सही डैशबोर्ड पर भेजें
+        if (userRole.toLowerCase() == 'doctor') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const DoctorDashboard()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const ReceptionDashboard()),
+          );
+        }
       } else {
         print('❌ Login failed: ${data['message']}');
         setState(() => _errorMessage = data['message'] ?? "Login fail ho gaya.");

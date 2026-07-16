@@ -1,154 +1,99 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../config/api_config.dart';
-import '../services/network_service.dart';
+import 'config_api.dart'; // सुनिश्चित करें कि यह फाइल सही है
+import 'network_service.dart'; // सुनिश्चित करें कि यह फाइल सही है
 
 class PrescriptionScreen extends StatefulWidget {
-  final Map<String, dynamic> visit;
-
-  const PrescriptionScreen({super.key, required this.visit});
+  const PrescriptionScreen({Key? key}) : super(key: key);
 
   @override
-  State<PrescriptionScreen> createState() => _PrescriptionScreenState();
+  _PrescriptionScreenState createState() => _PrescriptionScreenState();
 }
 
 class _PrescriptionScreenState extends State<PrescriptionScreen> {
-  final _diagnosisController = TextEditingController();
-  final _prescriptionController = TextEditingController();
-  bool _isSaving = false;
+  final TextEditingController _diagnosisController = TextEditingController();
+  final TextEditingController _prescriptionController = TextEditingController();
+  bool _isLoading = false;
   String? _errorMessage;
 
-  Future<void> _savePrescription() async {
+  Future<void> _submitPrescription() async {
+    final diagnosis = _diagnosisController.text;
+    final prescription = _prescriptionController.text;
+
+    if (diagnosis.isEmpty || prescription.isEmpty) {
+      setState(() {
+        _errorMessage = "Diagnosis and Prescription are required";
+      });
+      return;
+    }
+
     setState(() {
-      _isSaving = true;
+      _isLoading = true;
       _errorMessage = null;
     });
 
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
-      final visitId = widget.visit['visit_id'];
 
-      final response = await NetworkService.put(
-        ApiConfig.opdPrescription(visitId),
+      // यहाँ हम .post का उपयोग कर रहे हैं
+      final response = await NetworkService.post(
+        ApiConfig.addPrescription,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
         body: jsonEncode({
-          'diagnosis': _diagnosisController.text.trim(),
-          'prescription': _prescriptionController.text.trim(),
+          'diagnosis': diagnosis,
+          'prescription': prescription,
         }),
       );
 
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200 && data['success'] == true) {
-        if (!mounted) return;
-        Navigator.pop(context, true);
+      if (response.statusCode == 200) {
+        Navigator.pop(context); // सफल होने पर वापस जाएं
       } else {
-        setState(() => _errorMessage = data['message'] ?? 'Save nahi ho paya.');
+        setState(() {
+          _errorMessage = "Error: ${response.body}";
+        });
       }
     } catch (e) {
-      final errorMsg = NetworkService.getErrorMessage(e);
-      setState(() => _errorMessage = errorMsg);
+      setState(() {
+        _errorMessage = e.toString();
+      });
     } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final v = widget.visit;
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Prescription"),
-        backgroundColor: Colors.teal,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+      appBar: AppBar(title: const Text('Prescription')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      v['full_name'] ?? '',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "${v['hba_id'] ?? ''} • ${v['age'] ?? '-'} yrs, ${v['gender'] ?? '-'}",
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                    if ((v['complaint'] ?? '').toString().isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text("Shikayat: ${v['complaint']}"),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text("Diagnosis", style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
             TextField(
               controller: _diagnosisController,
-              maxLines: 2,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: "Diagnosis likhein...",
-              ),
+              decoration: const InputDecoration(labelText: 'Diagnosis'),
             ),
-            const SizedBox(height: 20),
-            const Text("Prescription (Dawaiyan)", style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
             TextField(
               controller: _prescriptionController,
-              maxLines: 6,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: "Dawa ka naam, dose, din...",
-              ),
+              decoration: const InputDecoration(labelText: 'Prescription'),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             if (_errorMessage != null)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  border: Border.all(color: Colors.red.shade300),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  _errorMessage!,
-                  style: TextStyle(color: Colors.red.shade700),
-                ),
-              ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: _isSaving ? null : _savePrescription,
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
-                child: _isSaving
-                    ? const SizedBox(
-                        height: 22,
-                        width: 22,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                      )
-                    : const Text("Save & Complete", style: TextStyle(color: Colors.white, fontSize: 16)),
-              ),
-            ),
+              Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+            const SizedBox(height: 20),
+            _isLoading
+                ? const CircularProgressIndicator()
+                : ElevatedButton(
+                    onPressed: _submitPrescription,
+                    child: const Text('Submit'),
+                  ),
           ],
         ),
       ),
