@@ -5,7 +5,8 @@ import '../config/api_config.dart'; // सुनिश्चित करें 
 import '../services/network_service.dart'; // सुनिश्चित करें कि यह फाइल सही है
 
 class PrescriptionScreen extends StatefulWidget {
-  const PrescriptionScreen({Key? key}) : super(key: key);
+  final Map<String, dynamic> visit;
+  const PrescriptionScreen({Key? key, required this.visit}) : super(key: key);
 
   @override
   _PrescriptionScreenState createState() => _PrescriptionScreenState();
@@ -39,7 +40,7 @@ class _PrescriptionScreenState extends State<PrescriptionScreen> {
 
       // यहाँ हम .post का उपयोग कर रहे हैं
       final response = await NetworkService.post(
-        ApiConfig.addPrescription,
+        ApiConfig.opdPrescription(visit['id']),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
