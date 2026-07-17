@@ -16,6 +16,7 @@ dependencies:
   
   # Local Storage
   shared_preferences: 2.5.5
+  url_launcher: ^6.3.1
   
   # UI
   cupertino_icons: 1.0.8
