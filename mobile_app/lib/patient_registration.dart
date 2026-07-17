@@ -45,14 +45,14 @@ class _PatientRegistrationScreenState extends State<PatientRegistrationScreen> {
       final response = await NetworkService.post(
         ApiConfig.register,
         headers: {'Authorization': 'Bearer $token'},
-        body: {
+        body: jsonEncode({
           "full_name": _nameController.text,
           "age": _ageController.text,
           "gender": _gender,
           "phone": _phoneController.text,
           "guardian_name": _guardianController.text,
           "address": _addressController.text,
-        },
+        }),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

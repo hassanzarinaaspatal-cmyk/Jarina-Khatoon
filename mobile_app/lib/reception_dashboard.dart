@@ -5,8 +5,8 @@ import 'package:url_launcher/url_launcher.dart'; // 💡 यह ज़रूरी 
 import 'config/api_config.dart';
 import 'patient_registration.dart';
 import 'login_screen.dart';
-import 'checkin_screen.dart';
-import 'doctor_dashboard.dart';
+import 'screens/checkin_screen.dart';
+import 'screens/doctor_dashboard.dart';
 import 'services/network_service.dart';
 
 class ReceptionDashboard extends StatefulWidget {

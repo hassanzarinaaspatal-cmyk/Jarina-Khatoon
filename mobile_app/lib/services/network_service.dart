@@ -83,4 +83,8 @@ class NetworkService {
     defaultHeaders.addAll(headers);
     return defaultHeaders;
   }
+
+  static String getErrorMessage(dynamic e) {
+    return e.toString();
+  }
 }

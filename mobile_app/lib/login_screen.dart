@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'config/api_config.dart';
 import 'reception_dashboard.dart';
-import 'doctor_dashboard.dart'; // 💡 डॉक्टर डैशबोर्ड को यहाँ इम्पोर्ट किया
+import 'screens/doctor_dashboard.dart'; // 💡 डॉक्टर डैशबोर्ड को यहाँ इम्पोर्ट किया
 import 'services/network_service.dart';
 
 class LoginScreen extends StatefulWidget {
