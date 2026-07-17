@@ -40,7 +40,7 @@ class _PrescriptionScreenState extends State<PrescriptionScreen> {
 
       // यहाँ हम .post का उपयोग कर रहे हैं
       final response = await NetworkService.post(
-        ApiConfig.opdPrescription(visit['id']),
+        ApiConfig.opdPrescription(widget.visit['id']),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
