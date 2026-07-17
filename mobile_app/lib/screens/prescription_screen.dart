@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'config_api.dart'; // सुनिश्चित करें कि यह फाइल सही है
-import 'network_service.dart'; // सुनिश्चित करें कि यह फाइल सही है
+import '../config/api_config.dart'; // सुनिश्चित करें कि यह फाइल सही है
+import '../services/network_service.dart'; // सुनिश्चित करें कि यह फाइल सही है
 
 class PrescriptionScreen extends StatefulWidget {
   const PrescriptionScreen({Key? key}) : super(key: key);

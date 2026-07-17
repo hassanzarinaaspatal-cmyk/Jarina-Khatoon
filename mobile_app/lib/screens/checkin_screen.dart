@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
-import '../models/patient_model.dart'; // 💡 हमारे नए पेशेंट मॉडल को इम्पोर्ट किया
+import '../models/patient.dart'; // 💡 हमारे नए पेशेंट मॉडल को इम्पोर्ट किया
 import '../services/network_service.dart';
 
 class CheckinScreen extends StatefulWidget {
