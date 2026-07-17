@@ -43,7 +43,7 @@ class _PatientRegistrationScreenState extends State<PatientRegistrationScreen> {
 
       // API को डेटा भेज रहे हैं
       final response = await NetworkService.post(
-        ApiConfig.register,
+        ApiConfig.patients,
         headers: {'Authorization': 'Bearer $token'},
         body: jsonEncode({
           "full_name": _nameController.text,
